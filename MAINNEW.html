@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEGO Brickvestor Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: #cfcfcf;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+		.ebay-button {
+			padding: 12px;
+			background-color: #007bff;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 18px;
+			margin-top: 20px;
+			text-align: center;
+			text-decoration: none;
+			display: none; /* Initially hidden */
+		}
+		.ebay-button:hover {
+			background-color: #0056b3;
+		}
+        .container {
+            background: #333;
+            padding: 30px;
+            max-width: 1000px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+        .form-section {
+            display: flex;
+            margin: 5px;
+            padding: 5px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .form-group {
+            flex: 1;
+            padding: 5px;
+            min-width: 250px;
+        }
+        input, select {
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #444;
+            color: #ffffff;
+            font-size: 16px;
+            width: 100%;
+        }
+        .theme-boxes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .theme-box {
+            background-color: #555;
+            padding: 5px;
+            border: 1px solid #777;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 160px;
+            text-align: center;
+            transition: background-color 0.3s;
+            color: #ffffff;
+        }
+        .theme-box.active {
+            background-color: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+        .theme-box img.theme-logo {
+            max-width: 150px;
+            max-height: 50px;
+            padding: 5px;
+        }
+        button {
+            padding: 12px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .result {
+            margin-top: 30px;
+            padding: 30px;
+            background: #222;
+            border-radius: 10px;
+            display: none;
+        }
+        .score-box {
+            font-size: 30px;
+            font-weight: bold;
+            text-align: center;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: relative;
+            color: #ffffff;
+        }
+        .tooltip {
+            font-size: 12px;
+            color: #888;
+            display: block;
+            margin-top: 10px;
+        }
+        .metrics {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .metric-box {
+            flex: 1;
+            margin: 5px;
+            background-color: #444;
+            border: 1px solid #555;
+            border-radius: 12px;
+            padding: 20px;
+            color: #ffffff;
+            text-align: center;
+        }
+        .metric-value {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .sub-metric-box {
+            margin-top: 10px;
+            background-color: #555;
+            border-radius: 8px;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .str-input-section {
+            display: flex;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .str-input-section label {
+            margin-right: 10px;
+        }
+        .str-input-section input[type="number"] {
+            margin-left: 10px;
+            flex: 1;
+        }
+		.tooltip-icon {
+			display: inline-block;
+			margin-left: 5px;
+			background-color: #444;
+			color: white;
+			border-radius: 50%;
+			width: 20px;
+			height: 20px;
+			text-align: center;
+			font-size: 12px;
+			line-height: 20px;
+			cursor: pointer;
+			position: relative;
+		}
+
+		.tooltip-icon:hover::after {
+			content: attr(data-tooltip);
+			position: absolute;
+			bottom: 125%; /* Position above the icon */
+			left: 50%;
+			transform: translateX(-50%);
+			background-color: #333;
+			color: white;
+			padding: 8px;
+			border-radius: 5px;
+			font-size: 12px;
+			white-space: nowrap;
+			z-index: 10;
+			opacity: 1;
+			visibility: visible;
+		}
+
+		.tooltip-icon:hover::before {
+			content: '';
+			position: absolute;
+			bottom: 100%; /* Align with the tooltip box */
+			left: 50%;
+			transform: translateX(-50%);
+			border-width: 5px;
+			border-style: solid;
+			border-color: transparent transparent #333 transparent;
+			z-index: 10;
+		}
+
+		.tooltip-icon::after, .tooltip-icon::before {
+			opacity: 0;
+			visibility: hidden;
+			transition: opacity 0.3s;
+		}
+		.tooltip-icon:hover::after, .tooltip-icon:hover::before {
+			opacity: 1;
+			visibility: visible;
+		}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LEGO Brickvestor Score Tracker</h1>
+
+        <!-- Input Form -->
+        <div class="form-section">
+            <div class="form-group">
+                <label for="set-name">LEGO Set Name</label>
+                <input type="text" id="set-name" placeholder="Enter set name" required>
+            </div>
+            <div class="form-group">
+                <label for="set-number">LEGO Set Number</label>
+                <input type="number" id="set-number" placeholder="Enter set number" max="9999999" required>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <label>Select Theme</label>
+            <div class="theme-boxes" id="theme-boxes">
+                <!-- Dynamically generated theme boxes -->
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-group">
+                <label for="shelf-status">Shelf Status</label>
+                <select id="shelf-status" required>
+                    <option value="Retired">Retired</option>
+                    <option value="Retiring">Retiring</option>
+                    <option value="Rumor Retiring">Rumor Retiring</option>
+                    <option value="Available">Available</option>
+                    <option value="Available (Back Order)">Available (Back Order)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="retail-status">Retail Status</label>
+                <select id="retail-status" required>
+                    <option value="LEGO Exclusive">LEGO Exclusive</option>
+                    <option value="Retailer Exclusive">Retailer Exclusive</option>
+                    <option value="Major Retail">Major Retail (Argos, Very, etc.)</option>
+                    <option value="Mass Retail">Mass Retail (Includes supermarkets)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <div class="form-group">
+                <label for="bip">Buy-in Price (£)</label>
+                <input type="number" id="bip" step="0.01" required>
+            </div>
+            <div class="form-group">
+                <label for="rrp">Retail Price (£)</label>
+                <input type="number" id="rrp" step="0.01" required>
+            </div>
+        </div>
+
+        <!-- Improved STR% Input Section -->
+        <div class="str-input-section">
+            <input type="checkbox" id="manual-str" />
+            <label for="manual-str">Enter STR% Manually</label>
+            <input type="number" id="manual-str-input" placeholder="Enter STR%" step="0.01" style="display:none;" />
+            <a href="your-tbc-link" target="_blank">How to calculate STR%</a>
+        </div>
+
+        <button id="calculate-btn">Calculate Brickvestor Score</button>
+
+        <!-- Result Display -->
+        <div class="result" id="result">
+            <div class="score-box">
+                Brickvestor Score: <span id="score"></span>/5
+				
+				<p class="tooltip">				The Brickvestor Score combines theme investment trends, deal value, and market demand to give LEGO investors a clear, actionable rating for any set. Using historical ROI data, third-party eBay sell-through rates, and real-time deal analysis, the score reflects both short-term opportunities and long-term growth potential. A 1-5 scale helps you quickly assess whether a set is worth picking up, from "Loose Bricks" to "Masterpiece," making it easy to spot great deals and high-potential investments.</p>
+
+                <p class="tooltip"><strong>1/5</strong> - Loose Bricks (Low potential)<br><strong>2/5</strong> - Average Build<br><strong>3/5</strong> - Strong Set<br><strong>4/5</strong> - Collector's Pick<br><strong>5/5</strong> - Masterpiece!</p>
+            </div>
+
+            <!-- Brickvestor Metrics -->
+            <div class="metrics">
+		<div class="metric-box">
+			<h4>Theme Investment Trends <span class="tooltip"> This score reflects the theme’s historical ROI and its potential for future value growth, helping you gauge investment strength.</span></h4>
+			<div class="metric-value" id="roi-metric"></div>
+			<div class="sub-metrics">
+				<div class="sub-metric-box">
+				<strong>Predicted ROI</strong>
+				<span class="tooltip-icon" data-tooltip="The predicted return on investment based on past theme performance and other factors">?</span>
+				<br><span id="roi-example"></span>
+				</div>
+				<div class="sub-metric-box">
+					<strong>Potential</strong>
+					<span class="tooltip-icon" data-tooltip="This score (1-5) estimates a LEGO theme’s future growth and investment potential based on factors like fandom size, market trends, cultural relevance, and exclusivity. It predicts how well a theme might perform after retirement, even if it's new or untested.">?</span>	
+					<br><span id="potential-metric"></span>
+				</div>
+			</div>
+		</div>
+		<div class="metric-box">
+			<h4>True Deal Value </h4> 
+				<div class="metric-value" id="deal-quality-metric"></div><span class="tooltip-icon" data-tooltip="75% and above: Excellent Deal – Instant pickup opportunity.
+    50% - 74%: Good Deal – Strong buying potential.
+    25% - 49%: Average Deal – Worth considering.
+    10% - 24%: Below Average – Proceed with caution.
+    Below 10%: Poor Deal – Not recommended for investment.">?</span>	
+			<span class="tooltip">Evaluates the attractiveness of the purchase price relative to retail value, factoring in scarcity, sentiment, theme ROI dynamics, immediate resell potential, and future hold value. <br><br> High True Deal Value often indicates favourable investment potential due to significant discounts, limited availability, and strong long-term prospects.</span></h4>
+	
+		</div>
+		<!-- eBay Button -->
+		<div class="metric-box">
+			<h4>Simple Advanced Insights <span class="tooltip">This link directs you to our eBay research preset for the selected set, providing key insights such as current/historic sales volume, sale price and # of sellers, sell-through rate, and more — all designed to support your investment decisions.</span></h4>
+		<a href="https://cdn.icon-icons.com/icons2/3042/PNG/512/ebay_logo_icon_189249.png" id="ebay-link-btn" class="ebay-button">VIEW IN-DEPTH DATE ON THIS SET</a>
+		
+	</div>
+
+            </div>
+        </div>
+
+        <script>
+            // Array of themes with ROI and potential values
+			const themes = [
+				{ name: 'Star Wars', roiRating: 5, potential: 5, minStr: 1, maxStr: 3 },
+				{ name: 'Friends', roiRating: 2, potential: 2, minStr: 3, maxStr: 7 },
+				{ name: 'Creator Expert', roiRating: 5, potential: 5, minStr: 5, maxStr: 12 },
+				{ name: 'Technic', roiRating: 3, potential: 3, minStr: 4, maxStr: 9 },
+				{ name: 'Harry Potter', roiRating: 4, potential: 4, minStr: 5, maxStr: 11 },
+				{ name: 'Marvel Super Heroes', roiRating: 3, potential: 3, minStr: 4, maxStr: 8.5 },
+				{ name: 'Architecture', roiRating: 3, potential: 3, minStr: 3.5, maxStr: 7 },
+				{ name: 'Ninjago', roiRating: 3, potential: 3, minStr: 3.5, maxStr: 7 },
+				{ name: 'Speed Champions', roiRating: 3, potential: 3, minStr: 3.5, maxStr: 7 },
+				{ name: 'Disney', roiRating: 2, potential: 2, minStr: 3.2, maxStr: 6.5 },
+				{ name: 'Botanical Collection', roiRating: 4, potential: 4, minStr: 3.5, maxStr: 7.5 },
+				{ name: 'Ideas', roiRating: 4, potential: 4, minStr: 4, maxStr: 9 },
+				{ name: 'Icons', roiRating: 4, potential: 4, minStr: 4.2, maxStr: 9.2 },
+				{ name: 'Lord of the Rings', roiRating: 4, potential: 4, minStr: 4.5, maxStr: 10 },
+				{ name: 'Castle', roiRating: 4, potential: 4, minStr: 4, maxStr: 9 },
+				{ name: 'Pirates', roiRating: 4, potential: 4, minStr: 3.7, maxStr: 8.5 },
+				{ name: 'BrickHeadz', roiRating: 3, potential: 3, minStr: 3.2, maxStr: 6.5 },
+				{ name: 'Batman', roiRating: 3, potential: 3, minStr: 3.5, maxStr: 7 },
+				{ name: 'DC', roiRating: 3, potential: 3, minStr: 3.2, maxStr: 6.5 },
+				{ name: 'Super Mario', roiRating: 2, potential: 4, minStr: 3, maxStr: 6 },
+				{ name: 'Jurassic World', roiRating: 2, potential: 3, minStr: 3.1, maxStr: 6.3 },
+				{ name: 'Animal Crossing', roiRating: 2, potential: 4, minStr: 2.8, maxStr: 5.5 },
+				{ name: 'DREAMZzz', roiRating: 2, potential: 3, minStr: 2.9, maxStr: 6 },
+				{ name: 'Avatar', roiRating: 2, potential: 3, minStr: 3, maxStr: 6 },
+				{ name: 'Despicable Me 4', roiRating: 2, potential: 2, minStr: 2.6, maxStr: 5.2 },
+				{ name: 'City', roiRating: 2, potential: 2, minStr: 2.5, maxStr: 5 },
+				{ name: 'Classic', roiRating: 1, potential: 1, minStr: 2.2, maxStr: 4.7 },
+				{ name: 'DOTS', roiRating: 1, potential: 1, minStr: 2.4, maxStr: 5 },
+				{ name: 'DUPLO', roiRating: 1, potential: 1, minStr: 2.1, maxStr: 4.5 },
+				{ name: 'DUPLO Peppa Pig', roiRating: 1, potential: 1, minStr: 2, maxStr: 4.5 },
+				{ name: 'Education', roiRating: 1, potential: 1, minStr: 2.2, maxStr: 4.7 },
+				{ name: 'Fortnite', roiRating: 2, potential: 4, minStr: 3.2, maxStr: 6.5 },
+				{ name: 'Gabby\'s Dollhouse', roiRating: 2, potential: 2, minStr: 2.6, maxStr: 5.2 },
+				{ name: 'The Legend of Zelda', roiRating: 2, potential: 5, minStr: 2.7, maxStr: 5.5 },
+				{ name: 'Sonic the Hedgehog', roiRating: 2, potential: 4, minStr: 3, maxStr: 6 },
+				{ name: 'Spider-Man', roiRating: 2, potential: 3, minStr: 3.2, maxStr: 6 },
+				{ name: 'Wednesday', roiRating: 2, potential: 3, minStr: 2.9, maxStr: 5.5 },
+				{ name: 'Wicked', roiRating: 2, potential: 3, minStr: 2.7, maxStr: 5.5 },
+				{ name: 'Indiana Jones', roiRating: 3, potential: 3, minStr: 3.5, maxStr: 7 },
+				{ name: 'Minecraft', roiRating: 2, potential: 3, minStr: 3.1, maxStr: 6 },
+				{ name: 'Monkie Kid', roiRating: 2, potential: 2, minStr: 3, maxStr: 6 }
+			];
+
+            let selectedTheme = null;
+
+            // Dynamically generate theme boxes
+            const themeBoxesContainer = document.getElementById('theme-boxes');
+            themes.forEach((theme, index) => {
+                const box = document.createElement('div');
+                box.classList.add('theme-box');
+                box.textContent = theme.name;  // Add theme name as content
+                
+                // Add click event to select theme
+                box.addEventListener('click', () => {
+                    // Remove active class from all other boxes
+                    document.querySelectorAll('.theme-box').forEach(box => box.classList.remove('active'));
+                    // Add active class to the clicked box
+                    box.classList.add('active');
+                    // Store selected theme
+                    selectedTheme = themes[index];
+                    
+                    // Update displayed metrics
+                    document.getElementById('roi-metric').textContent = `${selectedTheme.roiRating}/5`;
+                    document.getElementById('roi-example').textContent = `${selectedTheme.roiRating * 10}% - ${selectedTheme.roiRating * 25}%`; // example ROI range
+                    document.getElementById('potential-metric').textContent = `+${selectedTheme.potential}%`;
+                });
+                
+                // Append the theme box to the container
+                themeBoxesContainer.appendChild(box);
+            });
+
+            // Toggle visibility of manual STR% input
+            document.getElementById('manual-str').addEventListener('change', function () {
+                const manualStrInput = document.getElementById('manual-str-input');
+                if (this.checked) {
+                    manualStrInput.style.display = 'block';
+                } else {
+                    manualStrInput.style.display = 'none';
+                }
+            });
+			
+// Update eBay button link based on the LEGO set number
+function updateEbayLink() {
+    const setNumber = document.getElementById('set-number').value;
+    const ebayLinkBase = "https://www.ebay.co.uk/sh/research?marketplace=EBAY-UK&keywords=Lego+";
+    const ebayLinkSuffix = "&dayRange=30&endDate=1728774000000&startDate=1726182000000&categoryId=19006&conditionId=1000&sellerCountry=SellerLocation%3A%3A%3AGB&offset=0&limit=50&tabName=SOLD&tz=Europe%2FLondon";
+
+    if (setNumber) {
+        document.getElementById('ebay-link-btn').href = ebayLinkBase + setNumber + ebayLinkSuffix;
+        document.getElementById('ebay-link-btn').style.display = 'inline-block'; // Show the button
+    } else {
+        document.getElementById('ebay-link-btn').style.display = 'none'; // Hide if no set number
+    }
+}
+
+// Call updateEbayLink after calculating the score
+document.getElementById('calculate-btn').addEventListener('click', function () {
+    // Existing calculations here...
+
+    // Update the eBay link button after displaying results
+    updateEbayLink();
+});
+
+
+            // Brickvestor score calculation
+            document.getElementById('calculate-btn').addEventListener('click', function () {
+                const bip = parseFloat(document.getElementById('bip').value);
+                const rrp = parseFloat(document.getElementById('rrp').value);
+                const shelfStatus = document.getElementById('shelf-status').value;
+                const retailStatus = document.getElementById('retail-status').value;
+
+                // Check if theme is selected and all fields are filled with valid numbers
+                if (!selectedTheme || isNaN(bip) || isNaN(rrp)) {
+                    alert('Please select a theme and fill in all fields with valid numbers.');
+                    return;
+                }
+
+                // Manual STR% input handling
+                let strPercent;
+                if (document.getElementById('manual-str').checked) {
+                    strPercent = parseFloat(document.getElementById('manual-str-input').value);
+                    if (isNaN(strPercent)) {
+                        alert('Please enter a valid STR% or uncheck the manual option to generate one.');
+                        return;
+                    }
+                } else {
+                    // Auto-generate STR% based on the theme's STR% range
+                    const minStr = selectedTheme.minStr;
+                    const maxStr = selectedTheme.maxStr;
+                    strPercent = Math.random() * (maxStr - minStr) + minStr; // Simulating STR% generation
+                }
+
+                // Base Deal Quality calculation
+                const baseDealQuality = ((rrp - bip) / rrp) * 100;
+
+                // Shelf Status Adjustment
+                const shelfStatusAdjustment = shelfStatus === 'Retired' ? 3 :
+                                              shelfStatus === 'Retiring' ? 2 :
+                                              shelfStatus === 'Rumor Retiring' ? 1.5 :
+                                              shelfStatus === 'Available (Back Order)' ? 1 : 0;
+
+                // Retail Status Adjustment
+                const retailStatusAdjustment = retailStatus === 'LEGO Exclusive' ? 2 :
+                                               retailStatus === 'Retailer Exclusive' ? 1 :
+                                               retailStatus === 'Mass Retail' ? -1 : 0;
+
+                // Theme ROI Adjustment
+                const themeRoiAdjustment = selectedTheme.roiRating * 0.3; // Multiply ROI rating by 0.3 for scoring
+
+                // Final Deal Quality Calculation with Adjustments
+                const finalDealQuality = baseDealQuality + shelfStatusAdjustment + retailStatusAdjustment + themeRoiAdjustment;
+
+                // Display Deal Quality
+                document.getElementById('deal-quality-metric').textContent = `${finalDealQuality.toFixed(2)}%`;
+
+                // Score for each metric
+                const roiScore = selectedTheme.roiRating; // ROI score based on the theme's rating
+                const strScore = strPercent >= 190 ? 5 : strPercent >= 100 ? 4 : strPercent >= 50 ? 3 : strPercent >= 25 ? 2 : 1;
+                const dealQualityScore = finalDealQuality > 30 ? 5 : finalDealQuality > 20 ? 4 : finalDealQuality > 10 ? 3 : finalDealQuality > 0 ? 2 : 1;
+                const shelfStatusScore = shelfStatus === 'Retired' ? 5 : shelfStatus === 'Retiring' ? 4 : shelfStatus === 'Rumor Retiring' ? 3 : shelfStatus === 'Available (Back Order)' ? 2 : 1;
+                const retailStatusScore = retailStatus === 'LEGO Exclusive' ? 5 : retailStatus === 'Retailer Exclusive' ? 4 : retailStatus === 'Major Retail' ? 3 : 2;
+
+                // Final weighted score
+                const finalScore = (0.20 * roiScore) + (0.15 * strScore) + (0.10 * selectedTheme.potential) + 
+                                   (0.30 * dealQualityScore) + (0.15 * shelfStatusScore) + (0.10 * retailStatusScore);
+
+                // Display the result
+                document.getElementById('score').textContent = finalScore.toFixed(2);
+                document.getElementById('result').style.display = 'block';
+            });
+
+        </script>
+    </div>
+</body>
+</html>
